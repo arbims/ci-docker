@@ -1,0 +1,44 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/srv/app
+    expose:
+      - "9000"  # Expose le port 9000 pour PHP-FPM
+
+  web:
+    image: nginx:1.19-alpine
+    working_dir: /srv/app/
+    environment:
+      TERM: Linux
+    volumes:
+      - ./app:/srv/app
+      - ./.docker/nginx:/etc/nginx/conf.d
+    ports:
+      - "8000:80"
+    links:
+      - php
+
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: codeigniter_db
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+
+  adminer:
+    image: adminer
+    ports:
+      - "8888:8080"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+    driver: local
